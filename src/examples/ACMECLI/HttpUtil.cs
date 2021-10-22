@@ -1,6 +1,8 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace ACMECLI
@@ -30,6 +32,25 @@ namespace ACMECLI
         public static async Task<string> GetStringAsync(string url)
         {
             var resp = await Client.GetAsync(url);
+
+            if (resp.StatusCode != HttpStatusCode.OK)
+            {
+                if (resp.StatusCode == HttpStatusCode.NotFound)
+                    return null;
+                throw new Exception("HTTP request error:  "
+                        + $"({resp.StatusCode}) {await resp.Content.ReadAsStringAsync()}");
+            }
+
+            return await resp.Content.ReadAsStringAsync();
+        }
+        public static async Task<string> PostStringAsync(string url,string content)
+        {
+            var data = $"content={content}";
+
+            HttpClient client = new HttpClient();
+            StringContent queryString = new StringContent(data, Encoding.UTF8, "application/x-www-form-urlencoded");
+
+            HttpResponseMessage resp = await client.PostAsync(new Uri(url), queryString);
 
             if (resp.StatusCode != HttpStatusCode.OK)
             {

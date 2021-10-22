@@ -754,7 +754,7 @@ namespace ACMESharp.Protocol
             HttpStatusCode[] expectedStatuses = null,
             bool skipNonce = false, bool skipSigning = false, bool includePublicKey = false,
             CancellationToken cancel = default(CancellationToken),
-            [System.Runtime.CompilerServices.CallerMemberName]string opName = "")
+            [System.Runtime.CompilerServices.CallerMemberName] string opName = "")
         {
             if (method == null)
                 method = HttpMethod.Get;
@@ -809,7 +809,7 @@ namespace ACMESharp.Protocol
             HttpStatusCode[] expectedStatuses = null,
             bool skipNonce = false, bool skipSigning = false, bool includePublicKey = false,
             CancellationToken cancel = default(CancellationToken),
-            [System.Runtime.CompilerServices.CallerMemberName]string opName = "")
+            [System.Runtime.CompilerServices.CallerMemberName] string opName = "")
         {
             return await Deserialize<T>(await SendAcmeAsync(
                     uri, method, message, expectedStatuses,
@@ -825,7 +825,7 @@ namespace ACMESharp.Protocol
 
         async Task<AcmeProtocolException> DecodeResponseErrorAsync(HttpResponseMessage resp,
             string message = null,
-            [System.Runtime.CompilerServices.CallerMemberName]string opName = "")
+            [System.Runtime.CompilerServices.CallerMemberName] string opName = "")
         {
             string msg = null;
             Problem problem = null;
@@ -834,7 +834,7 @@ namespace ACMESharp.Protocol
             if (Constants.ProblemContentTypeHeaderValue.Equals(resp.Content?.Headers?.ContentType))
             {
                 problem = await Deserialize<Problem>(resp);
-                msg = problem.Detail;
+                msg = problem == null ? "" : problem.Detail;
             }
 
             if (string.IsNullOrEmpty(msg))

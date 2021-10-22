@@ -72,6 +72,9 @@ namespace ACMECLI
         [Option(ShortName = "", Description = "Flag indicates to check if the Challenges have been handled correctly")]
         public bool TestChallenges { get; }
 
+        [Option(ShortName = "", Description = "Flag indicates to post the Challenges")]
+        public bool PostChallenges { get; }
+        
         [Option(ShortName = "", Description = "Flag indicates to wait until Challenge tests are successfully validated, optionally override the default timeout of 300 (seconds)")]
         public (bool enabled, int? timeout) WaitForTest { get; }
 
@@ -649,8 +652,13 @@ namespace ACMECLI
             }
             else if (TestChallenges)
             {
-                Console.WriteLine("    Testing for handling of HTTP Challenge");
+                if(PostChallenges)
+                {
+                    Console.WriteLine("Post content to challenge URL");
+                    await HttpUtil.PostStringAsync(httpCd.HttpResourceUrl, httpCd.HttpResourceValue);
+                }
 
+                Console.WriteLine("    Testing for handling of HTTP Challenge");
                 while (true)
                 {
                     string err = null;
