@@ -74,7 +74,11 @@ namespace ACMECLI
 
         [Option(ShortName = "", Description = "Flag indicates to post the Challenges")]
         public bool PostChallenges { get; }
-        
+
+        [Option(ShortName = "", Description = "Client Secret to post the Challenges")]
+        public string ClientSecret { get; }
+
+
         [Option(ShortName = "", Description = "Flag indicates to wait until Challenge tests are successfully validated, optionally override the default timeout of 300 (seconds)")]
         public (bool enabled, int? timeout) WaitForTest { get; }
 
@@ -290,7 +294,7 @@ namespace ACMECLI
 
             if (order.Payload.Status == Constants.InvalidStatus)
                 throw new Exception("Order is already marked as INVALID");
-            
+
             if (order.Payload.Status == Constants.PendingStatus)
             {
                 var authzStatusCounts = new Dictionary<string, int>
@@ -390,7 +394,7 @@ namespace ACMECLI
                         }
                         ++chlngCount;
                     }
-                    
+
                     if (chlngCount == 0)
                         throw new Exception($"No matching Challenges found for Type [{ChallengeType}]");
                 }
@@ -474,7 +478,7 @@ namespace ACMECLI
                     return;
                 }
             }
-            
+
             if (order.Payload.Status == Constants.ValidStatus)
             {
                 Console.WriteLine("Order is VALID");
@@ -523,7 +527,7 @@ namespace ACMECLI
                 {
                     Console.WriteLine("Certificate already cached");
                 }
-                
+
                 if (ExportCert != null)
                 {
                     Console.WriteLine("Exporting Certificate Copy...");
@@ -635,6 +639,15 @@ namespace ACMECLI
             Console.WriteLine();
         }
 
+        public Uri RewriteHttps(Uri originalUri)
+        {
+            return new UriBuilder(originalUri)
+            {
+                Scheme = Uri.UriSchemeHttps,
+                Port = originalUri.IsDefaultPort ? -1 : originalUri.Port // -1 => default port for scheme
+            }.Uri;
+        }
+
         private async Task ProcessHttp01(IJwsTool accountSigner, Authorization authz,
             Challenge chlng, IChallengeValidationDetails cd)
         {
@@ -652,10 +665,13 @@ namespace ACMECLI
             }
             else if (TestChallenges)
             {
-                if(PostChallenges)
+                if (PostChallenges)
                 {
                     Console.WriteLine("Post content to challenge URL");
-                    await HttpUtil.PostStringAsync(httpCd.HttpResourceUrl, httpCd.HttpResourceValue);
+                    var data = $"content={httpCd.HttpResourceValue}&clientsecret={ClientSecret}";
+
+                    Uri uri = new Uri(httpCd.HttpResourceUrl);
+                    await HttpUtil.PostStringAsync(RewriteHttps(uri).ToString(), data);
                 }
 
                 Console.WriteLine("    Testing for handling of HTTP Challenge");
@@ -754,7 +770,7 @@ namespace ACMECLI
                     throw new Exception($"Failed to read object from non-existent path [{fullPath}]");
                 else
                     return false;
-            
+
             var ser = File.ReadAllText(fullPath);
             value = JsonConvert.DeserializeObject<T>(ser);
             return true;

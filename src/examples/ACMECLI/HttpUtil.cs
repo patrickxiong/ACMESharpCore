@@ -45,10 +45,9 @@ namespace ACMECLI
         }
         public static async Task<string> PostStringAsync(string url,string content)
         {
-            var data = $"content={content}";
 
             HttpClient client = new HttpClient();
-            StringContent queryString = new StringContent(data, Encoding.UTF8, "application/x-www-form-urlencoded");
+            StringContent queryString = new StringContent(content, Encoding.UTF8, "application/x-www-form-urlencoded");
 
             HttpResponseMessage resp = await client.PostAsync(new Uri(url), queryString);
 
